@@ -1,0 +1,58 @@
+# name: "Terraform Deployment"
+
+# on:
+#   push:
+#     branches:
+#       - main
+#   pull_request:
+#   workflow_dispatch:
+#     inputs:
+#       env:
+#         description: "Environment name"
+#         required: false
+#         default: lab
+#       destroy:
+#         description: "Set to true to destroy infrastructure"
+#         required: false
+#         default: 'false'
+
+# jobs:
+#   terraform:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       id-token: write
+#       contents: read
+
+#     env:
+#       ENV: ${{ github.event.inputs.env || 'lab' }}
+
+#     steps:
+#       - name: Checkout Repository
+#         uses: actions/checkout@v3
+
+#       - name: HashiCorp - Terraform setup
+#         uses: hashicorp/setup-terraform@v3.1.2
+
+#       - name: Configure AWS Credentials for GitHub Actions
+#         uses: aws-actions/configure-aws-credentials@v4.0.2
+#         with:
+#           audience: sts.amazonaws.com
+#           aws-region: ${{ secrets.AWS_REGION }}
+#           role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
+
+#       - name: Terraform Init & Select Workspace
+#         run: |
+#           terraform init
+#           terraform workspace select $ENV || terraform workspace new $ENV
+
+#       - name: Terraform Plan
+#         if: github.event.inputs.destroy != 'true'
+#         run: terraform plan -var-file=vars/${{ env.ENV }}.tfvars
+
+#       - name: Terraform Apply
+#         if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.destroy != 'true')
+#         run: terraform apply -auto-approve -var-file=vars/${{ env.ENV }}.tfvars
+
+#       - name: Terraform Destroy
+#         if: github.event_name == 'workflow_dispatch' && github.event.inputs.destroy == 'true'
+#         run: terraform destroy -auto-approve -var-file=vars/${{ env.ENV }}.tfvars

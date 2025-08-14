@@ -1,0 +1,16 @@
+---
+providers:
+  kubernetesCRD: {}
+  kubernetesIngress: {}
+
+ports:
+  traefik:
+    expose:
+      enabled: true
+    nodePort: 32090
+  web:
+    nodePort: 32080
+  websecure:
+    nodePort: 32443
+service:
+  type: NodePort

@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: airbyte-web
+  namespace: airbyte
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`${airbyte_hostname}`)
+      kind: Rule
+      services:
+        - name: airbyte-airbyte-webapp-svc
+          port: 80
+      middlewares:
+        - name: authentik-forwardauth
+          namespace: airbyte
+  tls:
+    secretName: authentik-tls

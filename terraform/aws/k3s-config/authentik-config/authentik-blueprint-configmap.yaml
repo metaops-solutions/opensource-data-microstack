@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-blueprint
+  namespace: authentik
+  labels:
+    authentik.blueprint: "true"
+data:
+  airbyte-blueprint.yaml: |
+    version: 1
+    metadata:
+      name: airbyte-authentik-blueprint
+    entries:
+      - model: authentik_core.application
+        identifiers:
+          slug: airbyte
+        attrs:
+          name: airbyte
+          slug: airbyte
+          policy_engine_mode: any
+          provider: !Find [authentik_providers_proxy.proxyprovider, [name, traefik]]
+      - model: authentik_providers_proxy.proxyprovider
+        identifiers:
+          name: traefik
+        attrs:
+          name: traefik
+          authentication_flow: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
+          mode: forward_domain
+          external_host: https://${authentik_hostname}
+          cookie_domain: ${main_domain}
+          application: !Find [authentik_core.application, [slug, airbyte]]
+      - model: authentik_outposts.outpost
+        identifiers:
+          name: authentik Embedded Outpost
+        attrs:
+          name: authentik Embedded Outpost
+          type: proxy
+          providers:
+            - !Find [authentik_providers_proxy.proxyprovider, [name, traefik]]
+          config:
+            authentik_host: https://${authentik_hostname}
+            log_level: info
+            token: ""
+          applications:
+            - !Find [authentik_core.application, [slug, airbyte]]

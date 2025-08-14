@@ -1,0 +1,1 @@
+KERNEL=="nvme*n*", ACTION=="add", RUN+="/usr/local/bin/auto-lvm-add.sh /dev/%k", RUN+="/bin/systemctl start mnt-data-mount.service"
